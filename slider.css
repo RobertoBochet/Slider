@@ -1,0 +1,62 @@
+.slider {
+	position: relative;
+	cursor: default;
+	user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+}
+.slider > header:not(.slide) {
+	position: absolute;
+	z-index: 10;
+	top: 10vh;
+	margin: 0 auto;
+	left: 50%;
+	max-width: 100%;
+	text-align: center;
+	-webkit-transform: translateX(-50%) translateY(-50%);
+	transform: translateX(-50%) translateY(-50%);
+	transition-property: opacity;
+	transition-timing-function: cubic-bezier(.65,.05,.36,1);
+	transition-duration: 2s;
+}
+.slider > header:not(.slide).hide {
+	opacity: 0;
+}
+.slider > .slide {
+	width: 100%;
+	height: 100%;
+	background-position: center;
+	background-size: cover;
+	position: absolute;	
+	transition-property: opacity;
+	transition-timing-function: cubic-bezier(.65,.05,.36,1);
+	transition-duration: 2s;
+	opacity: 0;
+}
+.slider > .slide.sel {
+	z-index: 1;
+	opacity: 1;	
+}
+.slider > .slide > a {
+	display: block;
+	width: 100%;
+	position: absolute;
+	bottom: 0;
+}
+.slider > .slide > a > header {
+	display: block;
+	padding: 20px;
+}
+.slider > .slide > a > header > h1 {
+	font-size: 5vh;
+	margin: 0;
+	
+}
+.slider > .slide > a > header > h2 {
+	font-size: 2.5vh;
+	margin: 10px 0 0 0;
+}
+.noTransition {
+	transition: 0s !important;
+}
