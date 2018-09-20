@@ -1,15 +1,12 @@
+/*jshint esversion: 6 */
 class Slider{
-	constructor(_stage, _settings) {
-		this.stage = _stage;
-		self = this;
-		
+	constructor(_stage, _settings) {		
 		//Default settings
 		this.settings = {
 			duration: 5000,
 			autoplay: true,
-			hideHeaderSlides: null,
-			hideHeaderTime: null,
-			durationHeaderSlide: 5000,
+			buttons: true,
+			durationHeaderSlide: null,
 			removeHeaderSlide: false
 		};
 		
@@ -30,24 +27,16 @@ class Slider{
 				   this.settings.autoplay = _settings.autoplay;
 			}
 			
-			if(_settings.hideHeaderSlides !== undefined) {
-				if(typeof _settings.hideHeaderSlides !== "number" || _settings.hideHeaderSlides <= 0)
-					console.warn("slider: The 'hideHeaderSlides' value must be a number greater than 0");
+			if(_settings.buttons !== undefined) {
+				if(typeof _settings.buttons !== "boolean")
+					console.warn("slider: The 'buttons' value must be a boolean");
 				else
-					this.settings.hideHeaderSlides = _settings.hideHeaderSlides;
-			}			
-			if(_settings.hideHeaderTime !== undefined) {
-				if(typeof _settings.hideHeaderTime !== "number" || _settings.hideHeaderTime <= 0)
-					console.warn("slider: The 'hideHeaderTime' value must be a number greater than 0");
-				else if(this.settings.hideHeaderSlides !== null)
-					console.warn("slider: 'hideHeaderTime' or 'hideHeaderSlides'; only one of these can be defined");
-				else
-					this.settings.hideHeaderTime = _settings.hideHeaderTime;
+				   this.settings.buttons = _settings.buttons;
 			}
 		
 			if(_settings.durationHeaderSlide !== undefined) {
-				if(typeof _settings.durationHeaderSlide !== "number" || _settings.durationHeaderSlide <= 0)
-					console.warn("slider: The 'durationHeaderSlide' value must be a number greater than 0");
+				if(_settings.durationHeaderSlide !== null && (typeof _settings.durationHeaderSlide !== "number" || _settings.durationHeaderSlide <= 0))
+					console.warn("slider: The 'durationHeaderSlide' value must be a number greater than 0 or null");
 				else
 					this.settings.durationHeaderSlide = _settings.durationHeaderSlide;
 			}
@@ -59,71 +48,84 @@ class Slider{
 			}
 		}
 		
-		//Initialization
-		this.index = 1;
-		this.number = this.stage.children(".slide").length;
+		//Initialization		
+		this.stage = _stage;
+		
+		if(this.settings.buttons === true) {
+			this.buttonback = document.createElement("div");
+			this.buttonnext = document.createElement("div");
+			
+			this.buttonback.classList.add("sliderbutton");
+			this.buttonnext.classList.add("sliderbutton");
+			
+			this.buttonback.onclick = ()=>{this.back();};
+			this.buttonnext.onclick = ()=>{this.next();};
+			
+			this.stage.appendChild(this.buttonback);
+			this.stage.appendChild(this.buttonnext);
+		}		
+		
+		this.index = 0;
+		this.slides = this.stage.querySelectorAll(".slide");
 		this.go = this.settings.autoplay;
 		
-		this.stage.children(".slide:first").addClass("noTransition").addClass("sel").delay(100).queue(function(){
-			self.stage.children(".slide:first").removeClass("noTransition");
-		});
 		
-		if(this.settings.hideHeaderSlides !== null) {
-			this.count = 0;
-		}
-		if(this.settings.hideHeaderTime !== null) {
-			setTimeout(function() {
-				self.hideHeader();
-			}, this.settings.hideHeaderTime);
-		}
+		this.slides[0].classList.add("noTransition");
+		this.slides[0].classList.add("sel");
+		setTimeout(()=>{this.slides[0].classList.remove("noTransition");},100);
 		
-		if(this.settings.removeHeaderSlide === true && this.stage.children("header.slide").length === 1) {
-			this.number--;
-			let int = setInterval(function() {
-				if(self.go) {
-					clearInterval(int);
-					
-					self.stage.children(".sel").removeClass("sel");
-					self.stage.children(".slide:nth-child(2)").addClass("sel")
-						.delay(self.settings.duration/2).queue(function(){
-						self.stage.children("header.slide").remove();
-					});
+		if(this.settings.autoplay) {
+			this.time = setTimeout(()=>{this.next();}, (this.settings.durationHeaderSlide !== null) ? this.settings.durationHeaderSlide : this.settings.duration);
+		}
+	}
+	
+	next()
+	{
+		clearTimeout(this.time);
+		
+		let nextindex = (this.index === this.slides.length - 1) ? 0 : this.index + 1;
+		
+		this.slides[nextindex].classList.add("sel");
+		this.slides[this.index].classList.remove("sel");
 
-					setInterval(function(){
-						if(self.go) self.next();
-					}, self.settings.duration);
-				}
-			}, this.settings.durationHeaderSlide);
-		} else {
-			setInterval(function(){
-				if(self.go) self.next();
-			}, this.settings.duration);
+		if(this.settings.removeHeaderSlide === true && this.index === 0) {
+			this.slides[0].classList.add("hide");
+			this.settings.removeHeaderSlide = false;
+			this.slides = this.stage.querySelectorAll(".slide:not(.hide)");
+			nextindex = 0;
 		}
-	}
-	
-	next() {
-		if(this.settings.hideHeaderSlides !== null) {
-			this.count++;
-			if(this.count === this.settings.hideHeaderSlides) {
-				this.hideHeader();
-				this.settings.hideHeaderSlides = null;
-			}
-		}
+		this.index = nextindex;
 		
-		this.stage.children(".sel").removeClass("sel");
-		this.index = this.index + 1;
-		if(this.index > this.number) this.index = 1;
-		this.stage.children(".slide:nth-child("+this.index+")").addClass("sel");
+		if(this.go) this.time = setTimeout(()=>{this.next();},this.settings.duration);
+	}
+	back()
+	{
+		clearTimeout(this.time);
+		
+		let nextindex = (this.index === 0) ? this.slides.length - 1 : this.index - 1;
+		
+		this.slides[nextindex].classList.add("sel");
+		this.slides[this.index].classList.remove("sel");
+
+		if(this.settings.removeHeaderSlide === true && this.index === 0) {
+			this.slides[0].classList.add("hide");
+			this.settings.removeHeaderSlide = false;
+			this.slides = this.stage.querySelectorAll(".slide:not(.hide)");
+			nextindex = this.slides.length - 1;
+		}
+		this.index = nextindex;
+		
+		if(this.go) this.time = setTimeout(()=>{this.next();},this.settings.duration);
 	}
 	
-	pause() {
+	pause()
+	{
 		this.go = false;
+		clearTimeout(this.time);
 	}
-	play() {
-		this.go = true;		
-	}
-	
-	hideHeader() {
-		this.stage.children("header:not(.slide)").addClass("hide");
+	play()
+	{
+		this.go = true;
+		this.time = setTimeout(()=>{this.next();},this.settings.duration);
 	}
 }

@@ -6,6 +6,35 @@
 	-ms-user-select: none;
 	-webkit-user-select: none;
 }
+
+/*Buttons*/
+.slider > div.sliderbutton {
+	z-index: 100000000;
+	position: absolute;
+	top: 0;
+	width: 7vw;
+	height: 100%;
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150"><polyline points="65.146 106.603 34.741 76.196 65.854 45.083" style="fill:none;stroke:gray;stroke-linejoin:round;stroke-width:5px"/></svg>');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-size: 100%;
+	-webkit-transition: background-size 0.3s;
+}
+.slider > div.sliderbutton:last-of-type {
+	right: 0;
+	-moz-transform: scaleX(-1);
+	-o-transform: scaleX(-1);
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+	filter: FlipH;
+	-ms-filter: "FlipH";
+}
+.slider > div.sliderbutton:hover {
+	background-size: 200%;
+}
+
+
+/*Header slide*/
 .slider > header:not(.slide) {
 	position: absolute;
 	z-index: 10;
@@ -23,6 +52,8 @@
 .slider > header:not(.slide).hide {
 	opacity: 0;
 }
+
+/*Slide*/
 .slider > .slide {
 	width: 100%;
 	height: 100%;
@@ -31,7 +62,7 @@
 	position: absolute;	
 	transition-property: opacity;
 	transition-timing-function: cubic-bezier(.65,.05,.36,1);
-	transition-duration: 2s;
+	transition-duration: 1s;
 	opacity: 0;
 }
 .slider > .slide.sel {
@@ -56,6 +87,7 @@
 .slider > .slide > a > header > h2 {
 	margin: 10px 0 0 0;
 }
+
 .noTransition {
 	transition: 0s !important;
 }
