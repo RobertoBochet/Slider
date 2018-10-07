@@ -52,6 +52,11 @@
 .slider > header:not(.slide).hide {
 	opacity: 0;
 }
+.slider.slidestransition > .slide {
+	transition-property: opacity;
+	transition-timing-function: cubic-bezier(.65,.05,.36,1);
+	transition-duration: 1s;
+}
 
 /*Slide*/
 .slider > .slide {
@@ -59,10 +64,7 @@
 	height: 100%;
 	background-position: center;
 	background-size: cover;
-	position: absolute;	
-	transition-property: opacity;
-	transition-timing-function: cubic-bezier(.65,.05,.36,1);
-	transition-duration: 1s;
+	position: absolute;
 	opacity: 0;
 }
 .slider > .slide.sel {

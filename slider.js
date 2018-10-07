@@ -1,6 +1,12 @@
 /*jshint esversion: 6 */
-class Slider{
-	constructor(_stage, _settings) {		
+var Slider;
+var Slide;
+(()=>{
+"use strict";
+Slider = Slider ||//Avoids multiple declarations
+class Slider extends EventTarget {
+	constructor(_stage, _settings) {	
+		super();
 		//Default settings
 		this.settings = {
 			duration: 5000,
@@ -51,6 +57,8 @@ class Slider{
 		//Initialization		
 		this.stage = _stage;
 		
+		this.isLoaded = false;
+		
 		if(this.settings.buttons === true) {
 			this.buttonback = document.createElement("div");
 			this.buttonnext = document.createElement("div");
@@ -66,66 +74,116 @@ class Slider{
 		}		
 		
 		this.index = 0;
-		this.slides = this.stage.querySelectorAll(".slide");
+		this.slides = Slide.list(this.stage.querySelectorAll(".slide"));
 		this.go = this.settings.autoplay;
 		
+		this.stage.classList.add("slidestransition");//Improved the compatibilty with ajax
 		
-		this.slides[0].classList.add("noTransition");
-		this.slides[0].classList.add("sel");
-		setTimeout(()=>{this.slides[0].classList.remove("noTransition");},100);
-		
-		if(this.settings.autoplay) {
-			this.time = setTimeout(()=>{this.next();}, (this.settings.durationHeaderSlide !== null) ? this.settings.durationHeaderSlide : this.settings.duration);
-		}
+		var a;
+		this.timer = setTimeout(a = () => {
+			if(this.slides[0].isLoaded === false) {
+				this.timer = setTimeout(a,100);
+				return;
+			}
+			
+			this.slides[0].select();
+			
+			if(this.settings.autoplay) {
+				this.timer = setTimeout(()=>{this.next();}, (this.settings.durationHeaderSlide !== null) ? this.settings.durationHeaderSlide : this.settings.duration);
+			}
+		},100);		
 	}
 	
 	next()
 	{
-		clearTimeout(this.time);
+		clearTimeout(this.timer);
 		
 		let nextindex = (this.index === this.slides.length - 1) ? 0 : this.index + 1;
 		
-		this.slides[nextindex].classList.add("sel");
-		this.slides[this.index].classList.remove("sel");
+		this.slides[nextindex].select();
+		this.slides[this.index].deselect();
 
 		if(this.settings.removeHeaderSlide === true && this.index === 0) {
-			this.slides[0].classList.add("hide");
+			this.slides[0].hide();
 			this.settings.removeHeaderSlide = false;
-			this.slides = this.stage.querySelectorAll(".slide:not(.hide)");
+			this.slides.shift();
 			nextindex = 0;
 		}
 		this.index = nextindex;
 		
-		if(this.go) this.time = setTimeout(()=>{this.next();},this.settings.duration);
+		if(this.go) this.timer = setTimeout(()=>{this.next();},this.settings.duration);
 	}
 	back()
 	{
-		clearTimeout(this.time);
+		clearTimeout(this.timer);
 		
 		let nextindex = (this.index === 0) ? this.slides.length - 1 : this.index - 1;
 		
-		this.slides[nextindex].classList.add("sel");
-		this.slides[this.index].classList.remove("sel");
+		this.slides[nextindex].select();
+		this.slides[this.index].deselect();
 
 		if(this.settings.removeHeaderSlide === true && this.index === 0) {
-			this.slides[0].classList.add("hide");
+			this.slides[0].hide();
 			this.settings.removeHeaderSlide = false;
-			this.slides = this.stage.querySelectorAll(".slide:not(.hide)");
+			this.slides.shift();
 			nextindex = this.slides.length - 1;
 		}
 		this.index = nextindex;
 		
-		if(this.go) this.time = setTimeout(()=>{this.next();},this.settings.duration);
+		if(this.go) this.timer = setTimeout(()=>{this.next();},this.settings.duration);
 	}
 	
 	pause()
 	{
 		this.go = false;
-		clearTimeout(this.time);
+		clearTimeout(this.timer);
 	}
 	play()
 	{
 		this.go = true;
-		this.time = setTimeout(()=>{this.next();},this.settings.duration);
+		this.timer = setTimeout(()=>{this.next();},this.settings.duration);
 	}
 }
+Slide = Slide ||//Avoids multiple declarations
+class Slide extends EventTarget {
+	constructor(_slide) {
+		super();
+		
+		this.node = _slide;		
+		this.isLoaded = false;
+		let image;
+		if(image = window.getComputedStyle(this.node)["background-image"].match(/^url\(\"(.*)\"\)$/)) {
+			image = image[1];
+			this.supportNode = document.createElement("img");
+			this.supportNode.style.display = "none";
+			this.supportNode.addEventListener("load",()=>{
+				this.isLoaded = true;
+				this.dispatchEvent(new Event("loaded"));
+				this.supportNode.parentNode.removeChild(this.supportNode);
+			});
+			this.supportNode.src = image;
+			document.body.appendChild(this.supportNode);
+		} else this.isLoaded = true;
+	}
+	select()
+	{
+		this.node.classList.add("sel");
+	}
+	deselect()
+	{
+		this.node.classList.remove("sel");
+	}
+	hide()
+	{
+		this.node.classList.add("hide");		
+	}
+	static list(nodes)
+	{
+		let list = [];
+		nodes.forEach((e)=>{
+			list.push(new Slide(e));
+		});
+		return list;
+	}	
+}
+})();
