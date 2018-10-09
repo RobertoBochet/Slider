@@ -1,6 +1,7 @@
 /*jshint esversion: 6 */
 var Slider;
 var Slide;
+var EventTarget;
 (()=>{
 "use strict";
 Slider = Slider ||//Avoids multiple declarations
@@ -143,7 +144,7 @@ class Slider extends EventTarget {
 		this.go = true;
 		this.timer = setTimeout(()=>{this.next();},this.settings.duration);
 	}
-}
+};
 Slide = Slide ||//Avoids multiple declarations
 class Slide extends EventTarget {
 	constructor(_slide) {
@@ -151,8 +152,8 @@ class Slide extends EventTarget {
 		
 		this.node = _slide;		
 		this.isLoaded = false;
-		let image;
-		if(image = window.getComputedStyle(this.node)["background-image"].match(/^url\(\"(.*)\"\)$/)) {
+		let image = window.getComputedStyle(this.node)["background-image"].match(/^url\(\"(.*)\"\)$/);
+		if(image !== null) {
 			image = image[1];
 			this.supportNode = document.createElement("img");
 			this.supportNode.style.display = "none";
@@ -185,5 +186,5 @@ class Slide extends EventTarget {
 		});
 		return list;
 	}	
-}
+};
 })();
